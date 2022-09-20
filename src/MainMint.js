@@ -10,6 +10,7 @@ const KryptoCampNFTAddress = "0x5A5E65f915b8bCC6d856FEF6ed81f895062882d1";
 const MainMint = ({ accounts, setAccounts }) => {
   const [mintAmount, setMintAmount] = useState(1)
   const [totalSupply, setTotalSupply] = useState(0)
+  const [currentChainId, setCurrentChainId] = useState(0)
   const isConnected = Boolean(accounts[0])
   const toast = useToast()
 
@@ -90,8 +91,48 @@ const MainMint = ({ accounts, setAccounts }) => {
     })
   }
 
+  // 如果不是在 Goerli chainId 5，請使用者切換到對應網路
+  const switchNetwork = async () => {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{
+        chainId: '0x5'
+      }]
+    })
+  }
+
+  // 檢查使用者的 Network 網路是否在測試鏈上
+  const getNetwork = async () => {
+    // 設定 Provider
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+
+    const { chainId } = await provider.getNetwork()
+
+    setCurrentChainId(chainId) // currentChainId
+
+    console.log('chainId', chainId)
+
+    if (chainId !== 5) {
+      // 如果不是在 Goerli chainId 5，請使用者切換到對應網路
+      switchNetwork()
+      showToast('請切換至 Goerli Network')
+    }
+  }
+
   useEffect(() => {
-    getNFTTotalSupply()
+    // 有安裝 Metamask
+    if (window.ethereum) {
+      getNetwork()
+      getNFTTotalSupply()
+
+      // 監聽
+      window.ethereum.on('networkChanged', (networkId) => {
+        if (networkId !== 5) window.location.reload()
+      })
+    } else {
+      showToast('請安裝 Metamask!!')
+    }
+
   }, [])
 
   return (
