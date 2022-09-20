@@ -15,7 +15,24 @@ const MainMint = ({ accounts, setAccounts }) => {
 
   // TODO: 呼叫合約 totalSupply 方法，並寫入到變數 totalSupply
   const getNFTTotalSupply = async () => {
+    // TODO: 1) 設定 Provider
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
 
+    // Dapp 串接智能合約 合約地址、ABI
+    // 2) 設定合約
+    const kryptoCampNFTContract = new ethers.Contract(
+      KryptoCampNFTAddress,
+      kryptoCampNFTAbi,
+      provider
+    )
+
+    // 3) 請求智能合約 totalSupply 方法
+    const totalSupply = await kryptoCampNFTContract.totalSupply()
+
+    // 方法一：parseInt(totalSupply._hex)
+    // 方法二：ehters.utils.formatUnits
+    const amount = ethers.utils.formatUnits(totalSupply, 0)
+    setTotalSupply(amount)
   }
 
   // TODO: 呼叫 Contract mint fn
